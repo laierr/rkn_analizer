@@ -1,38 +1,44 @@
 'use strict';
 
 const LineByLineReader = require('line-by-line'),
+  Promise = require('bluebird'),
   lr = new LineByLineReader('dump_utf.csv'),
   Papa = require('papaparse'),
+  _ = require('lodash'),
   fs = require('fs'),
   knexfile = require("./knexfile.js");
 
 const knexconf = knexfile[process.env.ENVIRONMENT || 'development'];
 const knex = require('knex')(knexconf);
 
-const papacfg = {	delimiter: ";", header: true };
+const papacfg = {
+  delimiter: ";",
+  header: true
+};
 const header = "IP;Domain;URL;Authority;Index;Date\n";
 
 
-let a = 0,
-  b = 0;
-
-const inserts = [];
+let count = 0;
+const lines = [];
 
 lr.on('line', (line) => {
-  a++;
+  count++;
 
-  if (line.indexOf("ФСКН") > 0) {
-    const parsedLine = Papa.parse(header + line, papacfg);
-    // parsedLine.data[0].IP = parsedLine.data[0].IP.split(" | ");
-    // console.log(parsedLine.data)
-    inserts.push(knex('rkn').insert(parsedLine.data));
-  };
+  const parsedLine = Papa.parse(header + line, papacfg);
+  // parsedLine.data[0].IP = parsedLine.data[0].IP.split(" | ");
+  // console.log(parsedLine.data[0])
+  lines.push(parsedLine.data[0]);
 });
 
 lr.on('end', () => {
+  const chunks = _.chunk(lines, 100),
+    inserts = _.map(chunks, (chunk, index) => {
+      return knex('rkn').insert(chunk);
+    });
+
   Promise.all(inserts).then((result) => {
     process.exit(0);
-  })
+  });
 
-  console.log(`${a} lines parsed, ${inserts.length} lines matched`);
+  console.log(`${count} lines parsed, ${lines.length} lines processed`);
 })
