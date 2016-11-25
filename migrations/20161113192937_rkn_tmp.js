@@ -1,5 +1,5 @@
 exports.up = function(knex, Promise) {
-  return knex.schema.createTable('rkn', (table) => {
+  return knex.schema.createTable('rkn_tmp', (table) => {
     table.increments();
     table.string('IP');
     table.string('Domain');
@@ -10,6 +10,7 @@ exports.up = function(knex, Promise) {
     table.timestamps();
   })
 };
+
 exports.down = function(knex, Promise) {
 
 };

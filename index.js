@@ -40,5 +40,5 @@ lr.on('end', () => {
     process.exit(0);
   });
 
-  console.log(`${count} lines parsed, ${lines.length} lines processed`);
+  console.log(`${count} lines parsed, ${lines.length} lines stacked`);
 })
