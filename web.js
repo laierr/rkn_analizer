@@ -19,7 +19,7 @@ const totalCount = () => {
   });
 };
 
-const top5Domains = () => {
+const top10Domains = () => {
   return getCount(knex.raw(`
     select Domain, count(*) from rkn where domain != ''
     group by 1
@@ -27,7 +27,6 @@ const top5Domains = () => {
     limit 10
   `), 'Domain');
 }
-top5Domains();
 
 const countAuthorities = () => {
   return getCount(knex('rkn').select('Authority')
@@ -36,13 +35,13 @@ const countAuthorities = () => {
 }
 
 app.get('/', (req, res) => {
-  Promise.all([countAuthorities(), totalCount(), top5Domains()])
-    .spread((countAuthorities, totalCount, top5Domains) => {
+  Promise.all([countAuthorities(), totalCount(), top10Domains()])
+    .spread((countAuthorities, totalCount, top10Domains) => {
       res.send({
         total: totalCount,
         stats: {
           autority: countAuthorities,
-          domain: top5Domains
+          domain: top10Domains
         }
       });
     });
@@ -51,8 +50,3 @@ app.get('/', (req, res) => {
 app.listen(3000, () => {
   console.log('App running on port 3000');
 })
-
-// query.map((entry) => {
-//     entry.IP = entry.IP.split(" | ");
-//     return entry;
-// }).then(console.log).then(process.exit);
