@@ -27,6 +27,16 @@ const top10Domains = () => {
     limit 10
   `), 'Domain');
 }
+const justIP = () => {
+  return knex('rkn')
+    .select(knex.raw(`authority, group_concat(IP, ' | ') as IP`))
+    .where('Domain', '')
+    .groupBy('Authority')
+    .map((obj) => {
+      obj.IP = obj.IP.split(" | ").sort();
+      return obj;
+    })
+}
 
 const countAuthorities = () => {
   return getCount(knex('rkn').select('Authority')
@@ -35,14 +45,15 @@ const countAuthorities = () => {
 }
 
 app.get('/', (req, res) => {
-  Promise.all([countAuthorities(), totalCount(), top10Domains()])
-    .spread((countAuthorities, totalCount, top10Domains) => {
+  Promise.all([countAuthorities(), totalCount(), top10Domains(), justIP()])
+    .spread((countAuthorities, totalCount, top10Domains, justIP) => {
       res.send({
         total: totalCount,
         stats: {
           autority: countAuthorities,
           domain: top10Domains
-        }
+        },
+        bannedIP: justIP
       });
     });
 })
